@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .expect("Não foi possível inicializar TcpListener");
 
     tracing::debug!(
-        "ouvindo em {}",
+        "aplicação ouvindo em {}",
         listener
             .local_addr()
             .expect("Não foi possível converter listener em endereço local")
