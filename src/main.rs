@@ -1,7 +1,7 @@
 mod routes;
 mod utils;
 
-use axum::routing::post;
+use axum::routing::{patch, post};
 use axum::{routing::get, Router};
 use axum_prometheus::PrometheusMetricLayer;
 use dotenvy::dotenv;
@@ -39,7 +39,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let app = Router::new()
         .route("/create", post(routes::create_link))
-        .route("/:id", get(routes::redirect))
+        .route("/:id", patch(routes::update_link).get(routes::redirect))
         .route("/metrics", get(|| async move { metric_handle.render() }))
         .route("/health", get(routes::health_check))
         .layer(TraceLayer::new_for_http())

@@ -98,6 +98,45 @@ pub async fn create_link(
     return Ok(Json(new_link));
 }
 
+pub async fn update_link(
+    State(pool): State<PgPool>,
+    Path(link_id): Path<String>,
+    Json(update_link): Json<LinkTarget>,
+) -> Result<Json<Link>, (StatusCode, String)> {
+    let update_timeout = tokio::time::Duration::from_millis(DEFAULT_TIMEOUT_IN_MILLI);
+
+    let url = Url::parse(&update_link.target_url)
+        .map_err(|_| (StatusCode::CONFLICT, "URL mal formatada".into()))?
+        .to_string();
+
+    let query = sqlx::query_as!(
+        Link,
+        r#"
+        with updated_link as (
+            update links set target_url = $1 where id = $2
+            returning id, target_url
+        )
+        select id, target_url from updated_link
+        "#,
+        &url,
+        &link_id
+    )
+    .fetch_one(&pool);
+
+    let updated_link = tokio::time::timeout(update_timeout, query)
+        .await
+        .map_err(internal_error)?
+        .map_err(internal_error)?;
+
+    tracing::debug!(
+        "Link com id {} atualizado, agora apontanto para {}",
+        updated_link.id,
+        updated_link.target_url
+    );
+
+    return Ok(Json(updated_link));
+}
+
 pub async fn redirect(
     State(pool): State<PgPool>,
     Path(requested_link): Path<String>,
