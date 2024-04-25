@@ -12,12 +12,7 @@ use rand::Rng;
 use sqlx::PgPool;
 use url::Url;
 
-use crate::utils::internal_error;
-
-const DEFAULT_CACHE_CONTROL_HEADER_VALUE: &str =
-    "public, max-age=300, s-maxage=300, stale-while-revalidate=300, stale-if-error=300";
-
-const DEFAULT_TIMEOUT_IN_MILLI: u64 = 350;
+use crate::utils::{internal_error, DEFAULT_CACHE_CONTROL_HEADER_VALUE, DEFAULT_TIMEOUT_IN_MILLI};
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]

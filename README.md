@@ -7,6 +7,7 @@ Este projeto apresenta um encurtador de URL simples implementado em Rust. O obje
 - Encurtar URLs longas em URLs mais curtas e fáceis de lembrar.
 - Personalizar o alias da URL encurtada (opcional).
 - Gerar QR Codes para URLs encurtadas.
+- Autenticação usando "x-api-key:ijhbKDJBKD".
 - Monitorar o acesso às URLs encurtadas (opcional).
 - **Observabilidade com Prometheus**: Colete métricas sobre o uso do encurtador de URL para análise e monitoramento.
 
