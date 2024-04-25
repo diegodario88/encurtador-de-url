@@ -2,6 +2,7 @@ use std::u32;
 
 use axum::body::Body;
 use axum::extract::{Path, State};
+use axum::http::HeaderMap;
 use axum::response::Response;
 use axum::Json;
 use axum::{http::StatusCode, response::IntoResponse};
@@ -35,6 +36,14 @@ pub struct LinkTarget {
 struct HealthResponse {
     pub status: String,
     pub info: String,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CountedLinkStatistic {
+    pub amount: Option<i64>,
+    pub referer: Option<String>,
+    pub user_agent: Option<String>,
 }
 
 impl HealthResponse {
@@ -140,6 +149,7 @@ pub async fn update_link(
 pub async fn redirect(
     State(pool): State<PgPool>,
     Path(requested_link): Path<String>,
+    headers: HeaderMap,
 ) -> Result<Response, (StatusCode, String)> {
     let select_timeout = tokio::time::Duration::from_millis(DEFAULT_TIMEOUT_IN_MILLI);
 
@@ -163,10 +173,83 @@ pub async fn redirect(
         link.target_url
     );
 
+    let referer_header = headers
+        .get("referer")
+        .map(|v| v.to_str().unwrap_or_default())
+        .unwrap_or("Não informado");
+
+    let user_agent = headers
+        .get("user-agent")
+        .map(|v| v.to_str().unwrap_or_default())
+        .unwrap_or("Não informado");
+
+    let insert_statistics_timeout = tokio::time::Duration::from_millis(DEFAULT_TIMEOUT_IN_MILLI);
+
+    let statistics_query = sqlx::query(
+        r#"
+            insert into link_statistics(link_id, referer, user_agent)
+            values($1, $2, $3)
+        "#,
+    )
+    .bind(&requested_link)
+    .bind(&referer_header)
+    .bind(&user_agent)
+    .execute(&pool);
+
+    let insert_statistics_result =
+        tokio::time::timeout(insert_statistics_timeout, statistics_query).await;
+
+    match insert_statistics_result {
+        Err(elapsed) => tracing::error!(
+            "Persistir as estatísticas resultou em erro. Ultrapassou o tempo limite de {} ms",
+            elapsed
+        ),
+        Ok(Err(err)) => tracing::error!(
+            "Persistir as estatísticas resultou no seguinte erro: {}",
+            err
+        ),
+        _ => tracing::debug!(
+            "Estatísticas salvas com sucesso para o id {}, referer {}, e user-agent {}",
+            requested_link,
+            referer_header,
+            user_agent,
+        ),
+    }
+
     return Ok(Response::builder()
         .status(StatusCode::TEMPORARY_REDIRECT)
         .header("Location", link.target_url)
         .header("Cache-Control", DEFAULT_CACHE_CONTROL_HEADER_VALUE)
         .body(Body::empty())
         .expect("Essa response deve ser contruída sempre"));
+}
+
+pub async fn get_link_statistics(
+    State(pool): State<PgPool>,
+    Path(link_id): Path<String>,
+) -> Result<Json<Vec<CountedLinkStatistic>>, (StatusCode, String)> {
+    let select_statistics_timeout = tokio::time::Duration::from_millis(DEFAULT_TIMEOUT_IN_MILLI);
+
+    let query = sqlx::query_as!(
+        CountedLinkStatistic,
+        r#"
+            select count(*) as amount, referer, user_agent from link_statistics
+            group by link_id, referer, user_agent
+            having link_id = $1
+        "#,
+        &link_id
+    )
+    .fetch_all(&pool);
+
+    let counted_link_statistics = tokio::time::timeout(select_statistics_timeout, query)
+        .await
+        .map_err(internal_error)?
+        .map_err(internal_error)?;
+
+    tracing::debug!(
+        "Estatísticas para o id: {} consultadas com sucesso",
+        link_id
+    );
+
+    return Ok(Json(counted_link_statistics));
 }
