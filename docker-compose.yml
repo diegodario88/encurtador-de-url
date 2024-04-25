@@ -10,19 +10,21 @@ services:
     build:
       context: .
       target: development
+    environment:
+      SQLX_OFFLINE: true
     command:
       - sh
       - -c
       - |
-        RUST_LOG=debug cargo watch -w src -x run
+        RUST_LOG=debug cargo watch -x run
     ports:
       - 3000:3000
     volumes:
-      - .:/opt/encurtador-de-url/app
-      - ./target:/usr/local/cargo/target
+      - .:/opt/encurtador-de-url/app:z
+      - ./target:/usr/local/cargo/target:z
     restart: unless-stopped
     extra_hosts:
-      - "encurtador-de-url.dev:172.17.0.1"
+      - "suindara.dev:172.17.0.1"
   postgres:
     container_name: postgres
     image: postgres:14.9
@@ -35,11 +37,11 @@ services:
       POSTGRES_DB: ${POSTGRESQL_DB}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
+      interval: 3s
       timeout: 5s
       retries: 5
     volumes:
-      - db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data:z
 networks:
   default:
     driver: bridge

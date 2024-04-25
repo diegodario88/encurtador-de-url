@@ -1,18 +1,24 @@
 FROM rust:1.77-alpine3.19 AS development
 
+RUN apk add --no-cache musl-dev openssl-dev pkgconfig
+
+RUN adduser --disabled-password --shell /bin/bash appuser
+
 WORKDIR /opt/encurtador-de-url/app
 
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
-ENV SQLX_OFFLINE=true
+ARG SQLX_OFFLINE=true
 
-RUN apk add --no-cache musl-dev openssl-dev pkgconfig
+ENV SQLX_OFFLINE=$SQLX_OFFLINE
 
 RUN cargo install cargo-watch
 
-COPY . .
+COPY --chown=appuser:appuser . .
 
 RUN cargo build --release
+
+USER appuser
 
 CMD ["cargo", "watch -w src -x run"]
 
