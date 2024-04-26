@@ -12,9 +12,10 @@ where
 {
     tracing::error!("{}", err);
 
-    let labels = [("error", format!("{}!", err))];
+    let labels = [("error", format!("{}", err))];
 
-    counter!("request_error", &labels);
+    let counter = counter!("request_error", &labels);
+    counter.increment(1);
 
     return (StatusCode::INTERNAL_SERVER_ERROR, err.to_string());
 }

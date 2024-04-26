@@ -1,6 +1,7 @@
 volumes:
   cargo-cache: {}
   db:
+  grafana-data:
 services:
   encurtador-de-url:
     container_name: encurtador-de-url
@@ -42,6 +43,31 @@ services:
       retries: 5
     volumes:
       - db:/var/lib/postgresql/data:z
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    ports:
+      - "3030:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - encurtador-de-url
+    environment:
+      GF_AUTH_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Editor"
+    extra_hosts:
+      - "suindara.dev:172.17.0.1"
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "suindara.dev:172.17.0.1"
+    volumes:
+      - .docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: always
 networks:
   default:
     driver: bridge

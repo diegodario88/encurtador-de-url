@@ -19,14 +19,15 @@ pub async fn guard(
     req: Request,
     next: Next,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let labels = [("uri", format!("{}!", req.uri()))];
+    let labels = [("uri", format!("{}", req.uri()))];
 
     let api_key = req.headers()
         .get("x-api-key")
         .map(|v| v.to_str().unwrap_or_default())
         .ok_or_else(|| {
             tracing::error!("Request não autorizada. Não foi possível encontrar o cabeçalho contendo a chave de autenticação");
-            counter!("unauthenticated_calls_count", &labels);
+            let counter = counter!("unauthenticated_calls_count", &labels);
+            counter.increment(1);
 
             return (StatusCode::UNAUTHORIZED, "Unauthorized".into());
         })?;
@@ -52,7 +53,8 @@ pub async fn guard(
 
     if select_settings_result.encrypted_global_api_key != format!("{provided_api_key:x}") {
         tracing::error!("Request não autorizada. A chave de autenticação provida no cabeçalho não corresponde com a armazenada");
-        counter!("unauthenticated_calls_count", &labels);
+        let counter = counter!("unauthenticated_calls_count", &labels);
+        counter.increment(1);
 
         return Err((StatusCode::UNAUTHORIZED, "Unauthorized".into()));
     }
