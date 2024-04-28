@@ -26,6 +26,11 @@ services:
     restart: unless-stopped
     extra_hosts:
       - "suindara.dev:172.17.0.1"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://suindara.dev:3000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   postgres:
     container_name: postgres
     image: postgres:14.9
@@ -50,12 +55,12 @@ services:
       - "3030:3000"
     volumes:
       - grafana-data:/var/lib/grafana
+      - .docker/grafana:/etc/grafana
     depends_on:
-      - encurtador-de-url
-    environment:
-      GF_AUTH_ENABLED: "true"
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
-      GF_AUTH_ANONYMOUS_ORG_ROLE: "Editor"
+      encurtador-de-url:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
     extra_hosts:
       - "suindara.dev:172.17.0.1"
   prometheus:
@@ -68,6 +73,11 @@ services:
     volumes:
       - .docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: always
+    healthcheck:
+      test: ["CMD", "pgrep", "prometheus"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
 networks:
   default:
     driver: bridge
