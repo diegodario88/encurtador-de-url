@@ -30,6 +30,12 @@ cd encurtador-de-url
 docker compose up
 ```
 
+5. **Acessar as Métricas**: Abra o navegador o sguinte endereço:
+
+```
+http://localhost:3030
+```
+
 ## Observabilidade com Prometheus
 
 O projeto integra o Prometheus para coletar métricas sobre o uso do encurtador de URL. As métricas disponíveis incluem:
