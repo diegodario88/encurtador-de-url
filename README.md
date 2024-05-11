@@ -26,13 +26,23 @@ git clone https://github.com/diegodario88/encurtador-de-url
 cd encurtador-de-url
 ```
 
-3. **Executar o Projeto**: Execute o seguinte comando para compilar e executar o aplicativo:
+3. **Endereço de IP**: Descubra o endereço de IP e substitua nos campos `extra_hosts:` do arquivo docker.compose.yml
+   > No windows
+   ```bash
+   Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.InterfaceAlias -eq 'Ethernet'} | Select-Object -ExpandProperty IPAddress
+   ```
+   > No linux
+   ```bash
+   ip addr show | grep docker
+   ```
+
+4. **Executar o Projeto**: Execute o seguinte comando para compilar e executar o aplicativo:
 
 ```bash
 docker compose up
 ```
 
-4. **Acessar as Métricas**: Abra o navegador o sguinte endereço:
+5. **Acessar as Métricas**: Abra o navegador o sguinte endereço:
 
 ```
 http://localhost:3030
