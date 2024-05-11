@@ -14,23 +14,25 @@ prática para encurtar URLs longas e complexas, facilitando o compartilhamento e
 
 Para instalar e executar o projeto, siga as etapas a seguir:
 
+1. **Clonar**: Clone o repositório
+
 ```bash
 git clone https://github.com/diegodario88/encurtador-de-url
 ```
 
-3. **Navegar para o Diretório**: Entre no diretório do projeto:
+2. **Navegar para o Diretório**: Entre no diretório do projeto:
 
 ```bash
 cd encurtador-de-url
 ```
 
-4. **Executar o Projeto**: Execute o seguinte comando para compilar e executar o aplicativo:
+3. **Executar o Projeto**: Execute o seguinte comando para compilar e executar o aplicativo:
 
 ```bash
 docker compose up
 ```
 
-5. **Acessar as Métricas**: Abra o navegador o sguinte endereço:
+4. **Acessar as Métricas**: Abra o navegador o sguinte endereço:
 
 ```
 http://localhost:3030
