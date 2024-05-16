@@ -3,6 +3,9 @@
 Este projeto apresenta um encurtador de URL simples implementado em Rust. O objetivo principal é fornecer uma ferramenta
 prática para encurtar URLs longas e complexas, facilitando o compartilhamento em diversos contextos.
 
+![image](https://github.com/diegodario88/encurtador-de-url/assets/25825145/45bda143-2502-49f0-b0fd-fcdbf64dacf2)
+
+
 ## Funcionalidades
 
 - Encurtar URLs longas em URLs mais curtas e fáceis de lembrar.
